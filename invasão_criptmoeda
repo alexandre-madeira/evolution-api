@@ -1,0 +1,100 @@
+Explicação do Problema da Invasão + Medidas Tomadas
+
+(Para publicar na comunidade da Evolution ou em documentação pública)
+
+🟥 Resumo do Caso de Invasão na Evolution API
+1. COMO A INVASÃO OCORREU
+
+A falha ocorreu porque o container da Evolution API estava exposto com:
+
+portas abertas
+
+volumes sem proteção
+
+execução privilegiada
+
+um serviço antigo e vulnerável
+
+O invasor:
+
+explorou vulnerabilidade em versões antigas da Evolution API
+
+enviou payload malicioso para execução
+
+implantou um binário disfarçado de processo Docker
+
+2. O QUE O MALWARE FAZIA
+🔥 Principais funções identificadas:
+
+Criava processo chamado:
+
+/tmp/docker-daemon
+
+
+Executava como usuário de UID 999 (usuário interno do container)
+
+Abriu portas para comunicação externa
+
+Baixava binários adicionais
+
+Executava mineração de criptomoeda
+
+Tentava persistir após reinicialização
+
+3. COMO FOI DETECTADO
+
+Uso anormal de CPU
+
+Processos de UID 999 fora de contexto
+
+Porta do Postgres sendo usada por containers desconhecidos
+
+Processo malicioso identificado em /tmp
+
+Comando ss -tulpn | grep 5432 mostrava portas expostas por malware
+
+4. PREJUÍZOS
+
+Consumo de CPU por horas (possível custo no VPS)
+
+Risco de vazamento de dados
+
+Risco de takeover total do servidor
+
+Instabilidade no ambiente (N8N caiu)
+
+Containers corrompidos
+
+5. MEDIDAS CORRETIVAS IMPLEMENTADAS
+
+✔ Remoção total dos containers Evolution
+✔ Remoção dos volumes
+✔ Remoção de todos os serviços Swarm infectados
+✔ Bloqueio de portas expostas (5432, 18080, 3000, 9443, etc)
+✔ Recriação segura de /tmp com noexec
+✔ Hardening completo do UFW
+✔ Reinstalação limpa de EasyPanel e Traefik
+✔ Reconstrução completa do ambiente N8N
+✔ Recriação segura de Postgres e Redis
+✔ Auditoria de processos e serviços
+✔ Verificação de persistência e vulnerabilidades
+
+6. COMO EVITAR NOVAMENTE
+
+Nunca deixar Evolution API exposta sem firewall
+
+Rodar APENAS versões atualizadas
+
+Usar Docker sem privilégios
+
+Bloquear portas internas com UFW
+
+Evitar Portainer exposto
+
+Sempre isolar serviços em redes Docker internas
+
+Usar /tmp com noexec
+
+Recriar senhas fortes e únicas
+
+Criar snapshots regulares
